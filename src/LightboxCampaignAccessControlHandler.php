@@ -19,12 +19,6 @@ class LightboxCampaignAccessControlHandler extends EntityAccessControlHandler {
    */
   protected function checkAccess(EntityInterface $entity, $operation, AccountInterface $account) {
     switch ($operation) {
-      case 'view':
-        return AccessResult::allowedIfHasPermission(
-          $account,
-          'view lightbox campaign'
-        );
-
       case 'edit':
         return AccessResult::allowedIfHasPermission(
           $account,
