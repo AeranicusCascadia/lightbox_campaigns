@@ -2,10 +2,8 @@
 
 namespace Drupal\lightbox_campaigns;
 
-use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityListBuilder;
-use Drupal\lightbox_campaigns\Entity\LightboxCampaign;
 
 /**
  * Provides a listing of lightbox campaign entities.
@@ -29,16 +27,16 @@ class LightboxCampaignListBuilder extends EntityListBuilder {
   /**
    * {@inheritdoc}
    *
-   * @var LightboxCampaign $entity
+   * @var \Drupal\lightbox_campaigns\Entity\LightboxCampaign $entity
    */
   public function buildRow(EntityInterface $entity) {
-    /* @var DrupalDateTime $start */
+    /* @var \Drupal\Core\Datetime\DrupalDateTime $start */
     $start = $entity->start->date;
     if (!is_null($start)) {
       $start = \Drupal::service('date.formatter')
         ->format($start->getTimestamp());
     }
-    /* @var DrupalDateTime $end */
+    /* @var \Drupal\Core\Datetime\DrupalDateTime $end */
     $end = $entity->end->date;
     if (!is_null($end)) {
       $end = \Drupal::service('date.formatter')

@@ -17,7 +17,7 @@ class LightboxCampaignForm extends ContentEntityForm {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    /* @var $entity \Drupal\lightbox_campaigns\Entity\LightboxCampaign */
+    /* @var \Drupal\lightbox_campaigns\Entity\LightboxCampaign $entity */
     $form = parent::buildForm($form, $form_state);
     $entity = $this->entity;
 
@@ -37,6 +37,7 @@ class LightboxCampaignForm extends ContentEntityForm {
    * Place the campaign visibility settings in a vertical tabs group.
    *
    * @param array $form
+   *   Form that should include visibility settings tabs group.
    */
   private function formatVisibilitySettingsForm(array &$form) {
     $form['visibility_tabs'] = [
@@ -93,7 +94,7 @@ class LightboxCampaignForm extends ContentEntityForm {
       \Drupal::service('messenger')->addMessage(
         $this->t(
           '%label has been updated.',
-          ['%label' => $this->entity->label(),]
+          ['%label' => $this->entity->label()]
         )
       );
     }
@@ -101,7 +102,7 @@ class LightboxCampaignForm extends ContentEntityForm {
       \Drupal::service('messenger')->addMessage(
         $this->t(
           '%label has been added.',
-          ['%label' => $this->entity->label(),]
+          ['%label' => $this->entity->label()]
         )
       );
     }

@@ -1,21 +1,22 @@
 <?php
 
 /**
-* @file
-* Lightbox Campaigns module file.
-*/
+ * @file
+ * Lightbox Campaigns module file.
+ */
 
-use Drupal\lightbox_campaigns\Entity\LightboxCampaign;
-
+/**
+ * Implements hook_theme().
+ */
 function lightbox_campaigns_theme() {
-  return array(
-    'lightbox_campaign' => array(
+  return [
+    'lightbox_campaign' => [
       'render element' => 'elements',
-    ),
-    'field__lightbox_campaign__body' => array(
+    ],
+    'field__lightbox_campaign__body' => [
       'base hook' => 'field',
-    ),
-  );
+    ],
+  ];
 }
 
 /**
@@ -28,8 +29,8 @@ function lightbox_campaigns_theme() {
  *   - elements: An array of elements to display in view mode.
  *   - attributes: An array of attributes for the parent element.
  */
-function template_preprocess_lightbox_campaign(&$variables) {
-  /* @var LightboxCampaign $campaign */
+function template_preprocess_lightbox_campaign(array &$variables) {
+  /* @var \Drupal\lightbox_campaigns\Entity\LightboxCampaign $campaign */
   $campaign = $variables['elements']['#lightbox_campaign'];
   // Attach module libraries.
   $variables['#attached'] = ['library' => ['lightbox_campaigns/featherlight']];
@@ -44,8 +45,6 @@ function template_preprocess_lightbox_campaign(&$variables) {
  *
  * Loads the featherlight library assets if campaigns will be loaded on the
  * current page.
- *
- * @param array $page
  */
 function lightbox_campaigns_page_attachments(array &$page) {
   $campaigns = _lightbox_campaigns_load();
@@ -54,7 +53,7 @@ function lightbox_campaigns_page_attachments(array &$page) {
 
     $settings = &$page['#attached']['drupalSettings']['lightbox_campaigns'];
 
-    /* @var LightboxCampaign $campaign */
+    /* @var \Drupal\lightbox_campaigns\Entity\LightboxCampaign $campaign */
     foreach ($campaigns as $id => $campaign) {
       $settings[$id] = ['reset_timer' => $campaign->get('reset')->value];
     }
@@ -65,14 +64,12 @@ function lightbox_campaigns_page_attachments(array &$page) {
  * Implements hook_page_bottom().
  *
  * Adds active campaigns to the page.
- *
- * @param array page_bottom
  */
 function lightbox_campaigns_page_bottom(array &$page_bottom) {
   $campaigns = _lightbox_campaigns_load();
   if (!empty($campaigns)) {
 
-    /* @var LightboxCampaign $campaign */
+    /* @var \Drupal\lightbox_campaigns\Entity\LightboxCampaign $campaign */
     foreach ($campaigns as $id => $campaign) {
       $render_array = \Drupal::service('entity_type.manager')
         ->getViewBuilder('lightbox_campaign')
@@ -85,7 +82,7 @@ function lightbox_campaigns_page_bottom(array &$page_bottom) {
 /**
  * Load enabled campaigns with passing visibility tests.
  *
- * @return array $campaigns
+ * @return array
  *   An array of fully loaded LightboxCampaign objects that should be loaded.
  */
 function _lightbox_campaigns_load() {
@@ -97,7 +94,7 @@ function _lightbox_campaigns_load() {
       ->getStorage('lightbox_campaign')
       ->loadByProperties(['enable' => TRUE]);
 
-    /* @var LightboxCampaign $campaign */
+    /* @var \Drupal\lightbox_campaigns\Entity\LightboxCampaign $campaign */
     foreach ($campaigns as $key => $campaign) {
       if ($campaign->shouldDisplay()) {
         $load[$campaign->id()] = $campaign;

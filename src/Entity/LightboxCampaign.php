@@ -8,8 +8,6 @@ use Drupal\Core\Entity\EntityChangedTrait;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
-use Drupal\Node\Entity\Node;
-use Drupal\Node\Entity\NodeType;
 use Drupal\lightbox_campaigns\LightboxCampaignInterface;
 use Drupal\user\UserInterface;
 
@@ -149,7 +147,7 @@ class LightboxCampaign extends ContentEntityBase implements LightboxCampaignInte
       ->setDefaultValue(TRUE)
       ->setDisplayOptions('form', [
         'type' => 'boolean_checkbox',
-        'settings' => ['display_label' => TRUE]
+        'settings' => ['display_label' => TRUE],
       ])
       ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
@@ -161,9 +159,9 @@ class LightboxCampaign extends ContentEntityBase implements LightboxCampaignInte
       ->setRevisionable(TRUE)
       ->setTranslatable(TRUE)
       ->setDefaultValue(NULL)
-      ->setDisplayOptions('form', array(
-        'type'   => 'text_textarea'
-      ))
+      ->setDisplayOptions('form', [
+        'type'   => 'text_textarea',
+      ])
       ->setDisplayOptions('view', [
         'label' => 'hidden',
         'type' => 'text_default',
@@ -220,7 +218,7 @@ class LightboxCampaign extends ContentEntityBase implements LightboxCampaignInte
       ->getStorage('node_type')
       ->loadMultiple();
     $node_types_options = [];
-    /* @var NodeType $node_type */
+    /* @var \Drupal\Node\Entity\NodeType $node_type */
     foreach ($node_types as $node_type) {
       $node_types_options[$node_type->id()] = $node_type->label();
     }
@@ -256,9 +254,9 @@ class LightboxCampaign extends ContentEntityBase implements LightboxCampaignInte
         /user/* for every user page. <front> is the front page.'))
       ->setRevisionable(TRUE)
       ->setDefaultValue(NULL)
-      ->setDisplayOptions('form', array(
-        'type'   => 'textarea'
-      ))
+      ->setDisplayOptions('form', [
+        'type'   => 'textarea',
+      ])
       ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
 
@@ -270,7 +268,7 @@ class LightboxCampaign extends ContentEntityBase implements LightboxCampaignInte
       ->setDefaultValue(0)
       ->setSettings([
         'off_label' => t('Show only for the specified paths'),
-        'on_label' => t('Hide for the specified paths')
+        'on_label' => t('Hide for the specified paths'),
       ])
       ->setDisplayOptions('form', ['type' => 'options_buttons'])
       ->setDisplayConfigurable('form', TRUE)
@@ -290,6 +288,12 @@ class LightboxCampaign extends ContentEntityBase implements LightboxCampaignInte
    * Create a clean array of visibility options data.
    *
    * @return array
+   *   Combined array of visibility settings keyed by type:
+   *    - node_types
+   *    - roles
+   *    - paths
+   *      - list
+   *      - negate
    */
   public function getVisibilitySettings() {
     $node_types = [];
@@ -307,8 +311,8 @@ class LightboxCampaign extends ContentEntityBase implements LightboxCampaignInte
       'roles' => $roles,
       'paths' => [
         'list' => explode("\r\n", $this->get('paths')->value),
-        'negate' => (bool) $this->get('paths_negate')->value
-      ]
+        'negate' => (bool) $this->get('paths_negate')->value,
+      ],
     ];
     return $visibility;
   }
@@ -320,7 +324,7 @@ class LightboxCampaign extends ContentEntityBase implements LightboxCampaignInte
    * will check any other visibility settings (user roles, node types, and
    * paths) based on the current context.
    *
-   * @return bool $display
+   * @return bool
    *   TRUE if the campaign should be displayed, FALSE otherwise.
    */
   public function shouldDisplay() {
@@ -359,7 +363,7 @@ class LightboxCampaign extends ContentEntityBase implements LightboxCampaignInte
 
       // Check current node type.
       if ($display && !empty($visibility['node_types'])) {
-        /* @var Node $node */
+        /* @var \Drupal\Node\Entity\Node $node */
         $node = \Drupal::service('current_route_match')->getParameter('node');
         if (!empty($node)) {
           if (!isset($visibility['node_types'][$node->getType()])) {
