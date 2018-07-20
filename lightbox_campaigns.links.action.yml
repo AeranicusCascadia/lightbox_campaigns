@@ -6,7 +6,7 @@ lightbox_campaigns.add_action:
 
 lightbox_campaigns.list_action:
   route_name: entity.lightbox_campaign.collection
-  title: 'List campaign'
+  title: 'List campaigns'
   appears_on:
     - entity.lightbox_campaign.add_form
     - entity.lightbox_campaign.edit_form
