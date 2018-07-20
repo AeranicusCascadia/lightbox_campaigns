@@ -122,8 +122,8 @@ class LightboxCampaignsTest extends BrowserTestBase {
     $assert->linkExists('Cancel');
     $this->drupalPostForm(NULL, [], 'Delete Campaign');
 
-    // Back to list, must be empty.
-    $assert->pageTextContains('There is no Lightbox Campaign yet.');
+    // Confirm status message, "%label was deleted".
+    $assert->pageTextContains('Test label was deleted');
   }
 
   /**
