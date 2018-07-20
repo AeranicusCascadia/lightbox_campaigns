@@ -28,7 +28,7 @@ entity.lightbox_campaign.edit_form:
     _title: 'Edit campaign'
     _entity_form: lightbox_campaign.edit
   requirements:
-    _entity_access: lightbox_campaign.update
+    _entity_access: lightbox_campaign.edit
 
 entity.lightbox_campaign.delete_form:
   path: '/admin/content/lightbox_campaigns/{lightbox_campaign}/delete'
