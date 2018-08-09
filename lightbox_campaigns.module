@@ -51,7 +51,7 @@ function lightbox_campaigns_entity_info() {
     'admin ui' => array(
       'path' => 'admin/content/lightbox_campaigns',
       'file' => 'lightbox_campaigns.admin.inc',
-      'controller class' => 'LightboxCampaignUIController'
+      'controller class' => 'LightboxCampaignUIController',
     ),
   );
 
@@ -69,6 +69,7 @@ function lightbox_campaigns_entity_info() {
  *   The user performing the action.
  *
  * @return bool
+ *   TRUE if access is allowed. FALSE otherwise.
  */
 function lightbox_campaigns_campaign_access_callback($op, $campaign = NULL, $account = NULL) {
   if ($op == 'view') {

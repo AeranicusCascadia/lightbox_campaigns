@@ -17,9 +17,10 @@
  * @param string $op
  *   The operation being performed.
  *
- * @return mixed
+ * @return array
+ *   A form render array.
  */
-function lightbox_campaigns_campaign_form($form, &$form_state, $campaign, $op = 'edit') {
+function lightbox_campaigns_campaign_form(array $form, array &$form_state, \LightboxCampaignEntity $campaign, $op = 'edit') {
   $form = array();
 
   if (!empty($campaign->rules)) {
@@ -182,9 +183,9 @@ function lightbox_campaigns_campaign_form($form, &$form_state, $campaign, $op = 
       page.", array(
         '%blog' => 'blog',
         '%blog-wildcard' => 'blog/*',
-        '%front' => '<front>'
+        '%front' => '<front>',
       )
-    )
+    ),
   );
 
   // Per content-type visibility.
@@ -243,7 +244,7 @@ function lightbox_campaigns_campaign_form($form, &$form_state, $campaign, $op = 
  *
  * @see lightbox_campaigns_campaign_form()
  */
-function lightbox_campaigns_campaign_form_submit(&$form, &$form_state) {
+function lightbox_campaigns_campaign_form_submit(array &$form, array &$form_state) {
   $campaign = entity_ui_form_submit_build_entity($form, $form_state);
   $campaign->save();
   drupal_set_message(t('Lightbox campaign %label saved!', array(

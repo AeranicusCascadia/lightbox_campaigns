@@ -5,7 +5,12 @@
  * Lightbox Campaign entity class.
  */
 
+/**
+ * Class LightboxCampaignEntity.
+ */
 class LightboxCampaignEntity extends Entity {
+
+  // @codingStandardsIgnoreStart
 
   /**
    * Campaign title (internal only).
@@ -90,8 +95,10 @@ class LightboxCampaignEntity extends Entity {
    */
   public $rules;
 
+  // @codingStandardsIgnoreEnd
+
   /**
-   * @inheritdoc
+   * {@inheritdoc}
    */
   protected function setUp() {
     parent::setUp();
@@ -100,7 +107,7 @@ class LightboxCampaignEntity extends Entity {
   }
 
   /**
-   * @inheritdoc
+   * {@inheritdoc}
    */
   protected function defaultUri() {
     return NULL;
@@ -212,6 +219,7 @@ class LightboxCampaignEntity extends Entity {
    * Retrieve all active Rules config entities that depend on the Campaign.
    *
    * @return array
+   *   An array of active Rules config entities by ID.
    */
   public function getDependantRules() {
     $rules = lightbox_campaigns_active_rules();

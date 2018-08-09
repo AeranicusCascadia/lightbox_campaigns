@@ -51,7 +51,7 @@ class LightboxCampaignsWebTestCase extends DrupalWebTestCase {
       'entity',
       'libraries',
       'date',
-      'lightbox_campaigns'
+      'lightbox_campaigns',
     ));
 
     $this->adminBasePath = 'admin/content/lightbox_campaigns';
@@ -106,15 +106,15 @@ class LightboxCampaignsWebTestCase extends DrupalWebTestCase {
       $edit[$i]['date_end[hour]'] = rand(1, 12);
       $edit[$i]['date_end[minute]'] = rand(10, 59);
       $edit[$i]['date_end[ampm]'] = $ampm[1];
-      $edit[$i]['visibility[path][only]'] = rand(0,1);
+      $edit[$i]['visibility[path][only]'] = rand(0, 1);
       $edit[$i]['visibility[path][pages]'] = 'node/' . rand(0, 100);
 
       foreach ($node_types as $node_type) {
-        $edit[$i]['visibility[node_type][types][' . $node_type .']'] = rand(0, 1);
+        $edit[$i]['visibility[node_type][types][' . $node_type . ']'] = rand(0, 1);
       }
 
       foreach ($roles as $role) {
-        $edit[$i]['visibility[role][roles][' . $role .']'] = rand(0, 1);
+        $edit[$i]['visibility[role][roles][' . $role . ']'] = rand(0, 1);
       }
 
       $this->drupalPost($this->adminBasePath . '/add', $edit[$i], 'Save');

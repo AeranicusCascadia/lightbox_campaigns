@@ -5,10 +5,13 @@
  * Entity UI controller for the Lightbox Campaign entity.
  */
 
+/**
+ * Class LightboxCampaignUIController.
+ */
 class LightboxCampaignUIController extends EntityDefaultUIController {
 
   /**
-   * @inheritdoc
+   * {@inheritdoc}
    */
   public function entityFormSubmitBuildEntity($form, &$form_state) {
     $campaign = parent::entityFormSubmitBuildEntity($form, $form_state);

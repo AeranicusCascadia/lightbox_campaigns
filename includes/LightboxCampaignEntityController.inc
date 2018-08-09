@@ -5,10 +5,13 @@
  * Entity controller for the Lightbox Campaign entity.
  */
 
+/**
+ * Class LightboxCampaignEntityController.
+ */
 class LightboxCampaignEntityController extends EntityAPIControllerExportable {
 
   /**
-   * @inheritdoc
+   * {@inheritdoc}
    */
   public function buildContent($entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
     $build = parent::buildContent($entity, $view_mode, $langcode, $content);
@@ -16,7 +19,7 @@ class LightboxCampaignEntityController extends EntityAPIControllerExportable {
   }
 
   /**
-   * @inheritdoc
+   * {@inheritdoc}
    */
   public function load($ids = array(), $conditions = array()) {
     $entities = parent::load($ids, $conditions);
@@ -24,7 +27,7 @@ class LightboxCampaignEntityController extends EntityAPIControllerExportable {
   }
 
   /**
-   * @inheritdoc
+   * {@inheritdoc}
    */
   public function save($entity, DatabaseTransaction $transaction = NULL) {
 
@@ -37,7 +40,7 @@ class LightboxCampaignEntityController extends EntityAPIControllerExportable {
   }
 
   /**
-   * @inheritdoc
+   * {@inheritdoc}
    */
   public function export($entity, $prefix = '') {
     // Remove calculated "rules" field to prevent export.

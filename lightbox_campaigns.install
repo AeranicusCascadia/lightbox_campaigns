@@ -6,7 +6,9 @@
  */
 
 /**
- * Implements hook_schema()
+ * Implements hook_schema().
+ *
+ * @see hook_schema()
  */
 function lightbox_campaigns_schema() {
   $schema = array();
@@ -88,7 +90,6 @@ function lightbox_campaigns_schema() {
       'enable' => array('enable'),
     ),
   );
-
 
   return $schema;
 }
