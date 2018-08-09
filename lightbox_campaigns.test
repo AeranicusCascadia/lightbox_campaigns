@@ -23,6 +23,13 @@ class LightboxCampaignsWebTestCase extends DrupalWebTestCase {
   protected $adminUser;
 
   /**
+   * The base path for Lightbox Campaign entity admin paths.
+   *
+   * @var string
+   */
+  protected $adminBasePath;
+
+  /**
    * Test information.
    */
   public static function getInfo() {
@@ -43,24 +50,28 @@ class LightboxCampaignsWebTestCase extends DrupalWebTestCase {
       'ctools',
       'entity',
       'libraries',
-      'date:date_api',
+      'date',
       'lightbox_campaigns'
     ));
+
+    $this->adminBasePath = 'admin/content/lightbox_campaigns';
+
     // Create and log in a privileged user.
     $this->adminUser = $this->drupalCreateUser(array(
+      'access content',
       'administer lightbox campaigns',
     ));
+    $this->drupalLogin($this->adminUser);
   }
 
   /**
    * Test basic access to entity management menu items.
    */
   public function testDefaultEntityMenuItems() {
-    $this->drupalLogin($this->adminUser);
     $paths = array(
-      'admin/content/lightbox_campaigns',
-      'admin/content/lightbox_campaigns/add',
-      'admin/content/lightbox_campaigns/import',
+      $this->adminBasePath,
+      $this->adminBasePath . '/add',
+      $this->adminBasePath . '/import',
     );
     foreach ($paths as $path) {
       $this->drupalGet($path);
@@ -68,47 +79,74 @@ class LightboxCampaignsWebTestCase extends DrupalWebTestCase {
     }
   }
 
-}
-
-
-/**
- * Unit tests.
- *
- * @see DrupalUnitTestCase
- *
- * @ingroup lightbox_campaigns
- */
-class LightboxCampaignsUnitTestCase extends DrupalUnitTestCase {
-
   /**
-   * {@inheritdoc}
+   * Test creating and manging some Lightbox Campaign entities.
    */
-  public static function getInfo() {
-    return array(
-      'name' => 'Lightbox Campaigns Unit Tests',
-      'description' => 'Test specific Lightbox Campaigns module 
-        functions/classes.',
-      'group' => 'Lightbox Campaigns',
-    );
-  }
+  public function testLightboxCampaignEntity() {
+    $ampm = array('am', 'pm');
+    $node_types = array('article', 'page');
+    $roles = array(1, 2, 3);
 
-  /**
-   * Set up the test environment.
-   */
-  public function setUp() {
-    $modules = array(
-      'ctools',
-      'entity',
-      'libraries',
-      'date:date_api',
-      'lightbox_campaigns'
-    );
+    // Create 10 entities.
+    for ($i = 1; $i <= 10; $i++) {
+      shuffle($ampm);
+      $edit[$i]['title'] = $this->randomName();
+      $edit[$i]['enable'] = rand(0, 1);
+      $edit[$i]['content[value]'] = $this->randomString();
+      $edit[$i]['reset'] = rand(0, 3) * 300;
+      $edit[$i]['date_start[month]'] = rand(1, 12);
+      $edit[$i]['date_start[day]'] = rand(1, 28);
+      $edit[$i]['date_start[year]'] = date('Y');
+      $edit[$i]['date_start[hour]'] = rand(1, 12);
+      $edit[$i]['date_start[minute]'] = rand(10, 59);
+      $edit[$i]['date_start[ampm]'] = $ampm[0];
+      $edit[$i]['date_end[month]'] = rand(1, 12);
+      $edit[$i]['date_end[day]'] = rand(1, 28);
+      $edit[$i]['date_end[year]'] = date('Y') + 1;
+      $edit[$i]['date_end[hour]'] = rand(1, 12);
+      $edit[$i]['date_end[minute]'] = rand(10, 59);
+      $edit[$i]['date_end[ampm]'] = $ampm[1];
+      $edit[$i]['visibility[path][only]'] = rand(0,1);
+      $edit[$i]['visibility[path][pages]'] = 'node/' . rand(0, 100);
 
-    foreach ($modules as $module) {
-      drupal_load('module', $module);
+      foreach ($node_types as $node_type) {
+        $edit[$i]['visibility[node_type][types][' . $node_type .']'] = rand(0, 1);
+      }
+
+      foreach ($roles as $role) {
+        $edit[$i]['visibility[role][roles][' . $role .']'] = rand(0, 1);
+      }
+
+      $this->drupalPost($this->adminBasePath . '/add', $edit[$i], 'Save');
+      $this->assertText('Lightbox campaign ' . $edit[$i]['title'] . ' saved!');
     }
 
-    parent::setUp();
+    // Delete entity 5.
+    $this->drupalPost(
+      $this->adminBasePath . '/manage/5/delete',
+      array(),
+      'Confirm'
+    );
+    $this->drupalGet($this->adminBasePath . '/manage/5');
+    $this->assertResponse(404, 'Deleted entity 5 no longer exists');
+    $deleted_title = $edit[5]['title'];
+    unset($edit[5]);
+
+    // Update entity 2 and verify the update.
+    $edit[2] = array(
+      'title' => $this->randomName(),
+      'content[value]' => $this->randomString(),
+    );
+    $this->drupalPost($this->adminBasePath . '/manage/2', $edit[2], 'Save');
+    $this->assertText('Lightbox campaign ' . $edit[2]['title'] . ' saved!');
+
+    // View the entity list page  and verify that the items which still exist
+    // are there, and that the deleted #5 no longer is there.
+    $this->drupalGet($this->adminBasePath);
+    foreach ($edit as $id => $item) {
+      $this->assertText($item['title']);
+    }
+    $this->assertNoText($deleted_title);
   }
 
 }

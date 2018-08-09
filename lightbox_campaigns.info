@@ -11,5 +11,6 @@ dependencies[] = libraries
 files[] = includes/LightboxCampaignEntity.inc
 files[] = includes/LightboxCampaignEntityController.inc
 files[] = includes/LightboxCampaignUIController.inc
+files[] = lightbox_campaigns.test
 
 configure = admin/content/lightbox_campaigns
