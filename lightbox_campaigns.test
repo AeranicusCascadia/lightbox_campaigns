@@ -47,7 +47,6 @@ class LightboxCampaignsWebTestCase extends DrupalWebTestCase {
    */
   public function setUp() {
     parent::setUp(array(
-      'ctools',
       'entity',
       'libraries',
       'date',
