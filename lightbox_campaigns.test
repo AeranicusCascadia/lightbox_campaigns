@@ -1,0 +1,114 @@
+<?php
+
+/**
+ * @file
+ * Tests for the Lightbox Campaigns module.
+ */
+
+/**
+ * Functional tests.
+ *
+ * @see DrupalWebTestCase
+ * @see SimpleTestUnitTestExampleTestCase
+ *
+ * @ingroup lightbox_campaigns
+ */
+class LightboxCampaignsWebTestCase extends DrupalWebTestCase {
+
+  /**
+   * A privileged Drupal user.
+   *
+   * @var object
+   */
+  protected $adminUser;
+
+  /**
+   * Test information.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Lightbox Campaigns Functional Tests',
+      'description' => 'Test basic Lightbox Campaigns module functionality.',
+      'group' => 'Lightbox Campaigns',
+    );
+  }
+
+  /**
+   * Set up the test environment.
+   *
+   * @see DrupalWebTestCase::setUp()
+   */
+  public function setUp() {
+    parent::setUp(array(
+      'ctools',
+      'entity',
+      'libraries',
+      'date:date_api',
+      'lightbox_campaigns'
+    ));
+    // Create and log in a privileged user.
+    $this->adminUser = $this->drupalCreateUser(array(
+      'administer lightbox campaigns',
+    ));
+  }
+
+  /**
+   * Test basic access to entity management menu items.
+   */
+  public function testDefaultEntityMenuItems() {
+    $this->drupalLogin($this->adminUser);
+    $paths = array(
+      'admin/content/lightbox_campaigns',
+      'admin/content/lightbox_campaigns/add',
+      'admin/content/lightbox_campaigns/import',
+    );
+    foreach ($paths as $path) {
+      $this->drupalGet($path);
+      $this->assertResponse(200);
+    }
+  }
+
+}
+
+
+/**
+ * Unit tests.
+ *
+ * @see DrupalUnitTestCase
+ *
+ * @ingroup lightbox_campaigns
+ */
+class LightboxCampaignsUnitTestCase extends DrupalUnitTestCase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Lightbox Campaigns Unit Tests',
+      'description' => 'Test specific Lightbox Campaigns module 
+        functions/classes.',
+      'group' => 'Lightbox Campaigns',
+    );
+  }
+
+  /**
+   * Set up the test environment.
+   */
+  public function setUp() {
+    $modules = array(
+      'ctools',
+      'entity',
+      'libraries',
+      'date:date_api',
+      'lightbox_campaigns'
+    );
+
+    foreach ($modules as $module) {
+      drupal_load('module', $module);
+    }
+
+    parent::setUp();
+  }
+
+}

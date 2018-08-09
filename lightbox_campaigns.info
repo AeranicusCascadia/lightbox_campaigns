@@ -1,0 +1,15 @@
+name = Lightbox Campaigns
+description = Create and manage lightbox campaigns.
+package = Content Display
+
+core = 7.x
+
+dependencies[] = date:date_api
+dependencies[] = entity
+dependencies[] = libraries
+
+files[] = includes/LightboxCampaignEntity.inc
+files[] = includes/LightboxCampaignEntityController.inc
+files[] = includes/LightboxCampaignUIController.inc
+
+configure = admin/content/lightbox_campaigns

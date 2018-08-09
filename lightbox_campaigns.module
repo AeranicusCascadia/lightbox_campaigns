@@ -2,105 +2,252 @@
 
 /**
  * @file
- * Lightbox Campaigns module file.
+ * Primary hooks and functions for the Lightbox Campaigns module.
  */
 
 /**
- * Implements hook_theme().
+ * Implements hook_permission().
  */
-function lightbox_campaigns_theme() {
-  return [
-    'lightbox_campaign' => [
-      'render element' => 'elements',
-    ],
-    'field__lightbox_campaign__body' => [
-      'base hook' => 'field',
-    ],
-  ];
+function lightbox_campaigns_permission() {
+  $permissions = array();
+
+  $permissions['administer lightbox campaigns'] = array(
+    'title' => t('Administer Lightbox Campaigns'),
+    'description' => t('Add/edit/delete Lightbox Campaigns entities.'),
+  );
+
+  return $permissions;
 }
 
 /**
- * Prepares variables for the lightbox_campaign templates.
+ * Implements hook_entity_info().
  *
- * Default template: lightbox_campaign.html.twig.
- *
- * @param array $variables
- *   An associative array containing two primary things:
- *   - elements: An array of elements to display in view mode.
- *   - attributes: An array of attributes for the parent element.
+ * @see hook_entity_info()
  */
-function template_preprocess_lightbox_campaign(array &$variables) {
-  /* @var \Drupal\lightbox_campaigns\Entity\LightboxCampaign $campaign */
-  $campaign = $variables['elements']['#lightbox_campaign'];
-  // Attach module libraries.
-  $variables['#attached'] = ['library' => ['lightbox_campaigns/featherlight']];
-  // Add a custom data attribute with the campaign ID.
-  $variables['attributes']['data-lightbox-campaigns-entity-id'] = $campaign->id();
-  // Give the content an initial hidden state.
-  $variables['attributes']['class'] = ['lightbox-campaigns-campaign'];
+function lightbox_campaigns_entity_info() {
+  $entities = array();
+
+  $entities['lightbox_campaigns_campaign'] = array(
+    'label' => t('Lightbox Campaign'),
+    'base table' => 'lightbox_campaigns',
+    'entity class' => 'LightboxCampaignEntity',
+    'controller class' => 'LightboxCampaignEntityController',
+    'module' => 'lightbox_campaigns',
+    'access callback' => 'lightbox_campaigns_campaign_access_callback',
+    'label callback' => 'entity_class_label',
+    'fieldable' => FALSE,
+    'exportable' => TRUE,
+    'views controller class' => 'EntityDefaultViewsController',
+    'view modes' => array(
+      'full' => array(
+        'label' => t('Full content'),
+        'custom settings' => FALSE,
+      ),
+    ),
+    'entity keys' => array(
+      'id' => 'id',
+      'label' => 'title',
+    ),
+    'admin ui' => array(
+      'path' => 'admin/content/lightbox_campaigns',
+      'file' => 'lightbox_campaigns.admin.inc',
+      'controller class' => 'LightboxCampaignUIController'
+    ),
+  );
+
+  return $entities;
 }
 
 /**
- * Implements hook_page_attachments().
+ * Access callback for Lightbox Campaign entities.
  *
- * Loads the featherlight library assets if campaigns will be loaded on the
- * current page.
+ * @param string $op
+ *   The operation being performed on the entity.
+ * @param object|null $campaign
+ *   The Campaign entity.
+ * @param object|null $account
+ *   The user performing the action.
+ *
+ * @return bool
  */
-function lightbox_campaigns_page_attachments(array &$page) {
-  $campaigns = _lightbox_campaigns_load();
-  if (!empty($campaigns)) {
-    $page['#attached']['library'][] = 'lightbox_campaigns/featherlight';
+function lightbox_campaigns_campaign_access_callback($op, $campaign = NULL, $account = NULL) {
+  if ($op == 'view') {
+    return TRUE;
+  }
+  elseif (($op == 'update' || $op == 'create' || $op == 'delete')
+    && user_access('administer lightbox campaigns', $account)) {
+    return TRUE;
+  }
+  else {
+    return FALSE;
+  }
+}
 
-    $settings = &$page['#attached']['drupalSettings']['lightbox_campaigns'];
+/**
+ * Implements hook_libraries_info().
+ *
+ * @see hook_libraries_info()
+ */
+function lightbox_campaigns_libraries_info() {
+  $libraries['featherlight'] = array(
+    'name' => 'Featherlight',
+    'vendor url' => 'https://github.com/noelboss/featherlight/',
+    'download url' => 'https://github.com/noelboss/featherlight/releases',
+    'version arguments' => array(
+      'file' => 'package.json',
+      'pattern' => '/"version":\s+"{0,1}([0-9a-zA-Z\.-]+)"{0,1}/',
+    ),
+    'files' => array(
+      'js' => array(
+        'release/featherlight.min.js',
+      ),
+      'css' => array(
+        'release/featherlight.min.css',
+      ),
+    ),
+    'variants' => array(
+      'minified' => array(
+        'files' => array(
+          'js' => array(
+            'release/featherlight.min.js',
+          ),
+          'css' => array(
+            'release/featherlight.min.css',
+          ),
+        ),
+      ),
+      'source' => array(
+        'files' => array(
+          'js' => array(
+            'src/featherlight.js',
+          ),
+          'css' => array(
+            'src/featherlight.css',
+          ),
+        ),
+      ),
+    ),
+  );
 
-    /* @var \Drupal\lightbox_campaigns\Entity\LightboxCampaign $campaign */
-    foreach ($campaigns as $id => $campaign) {
-      $settings[$id] = ['reset_timer' => $campaign->get('reset')->value];
+  return $libraries;
+}
+
+/**
+ * Implements hook_page_build().
+ *
+ * Checks for any Lightbox Campaigns entities that should display and adds them
+ * to the "page_bottom" section of the page.
+ *
+ * @see hook_page_build()
+ */
+function lightbox_campaigns_page_build(&$page) {
+  if (!path_is_admin(current_path())) {
+    $ids = array();
+
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', 'lightbox_campaigns_campaign')
+      ->propertyCondition('enable', TRUE);
+    $results = $query->execute();
+    if (!empty($results) && !empty($results['lightbox_campaigns_campaign'])) {
+      $ids = array_keys($results['lightbox_campaigns_campaign']);
+    }
+
+    // Check for assigned Campaigns from Rules configurations.
+    /* @see lightbox_campaigns_rules_action_display_campaign() */
+    $rules_campaigns = array();
+    if (isset($_SESSION['lightbox_campaigns_rules_action_display_campaign'])) {
+      $rules_campaigns = $_SESSION['lightbox_campaigns_rules_action_display_campaign'];
+      unset($_SESSION['lightbox_campaigns_rules_action_display_campaign']);
+    }
+
+    $campaigns = entity_load('lightbox_campaigns_campaign', $ids);
+
+    /* @var \LightboxCampaignEntity $campaign */
+    $page['page_bottom']['lightbox_campaigns'] = array();
+    $js_settings = array();
+    foreach ($campaigns as $campaign) {
+      $id = $campaign->identifier();
+      if ($campaign->shouldDisplay(isset($rules_campaigns[$id]))) {
+        $page['page_bottom']['lightbox_campaigns'][$id] = array(
+          '#type' => 'container',
+          '#attributes' => array(
+            'data-lightbox-campaigns-entity-id' => $id,
+            'class' => array('lightbox-campaigns-campaign'),
+          ),
+        );
+        $page['page_bottom']['lightbox_campaigns'][$id][] = array(
+          '#type' => 'markup',
+          '#markup' => $campaign->content,
+        );
+        $js_settings[$id] = array('reset_timer' => $campaign->reset);
+      }
+    }
+
+    if (!empty($page['page_bottom']['lightbox_campaigns'])) {
+      $module_path = drupal_get_path('module', 'lightbox_campaigns');
+      $library_path = libraries_get_path('featherlight');
+
+      $page['page_bottom']['lightbox_campaigns']['#attached'] = array(
+        'js' => array(
+          $library_path . '/src/featherlight.js',
+          $module_path . '/js/lightbox-campaigns.js',
+        ),
+        'css' => array(
+          $library_path . '/src/featherlight.css',
+          $module_path . '/css/lightbox-campaigns.css',
+        ),
+      );
+
+      drupal_add_js(array('lightbox_campaigns' => $js_settings), 'setting');
     }
   }
 }
 
 /**
- * Implements hook_page_bottom().
+ * Find active Rules that rely on Lightbox Campaigns.
  *
- * Adds active campaigns to the page.
- */
-function lightbox_campaigns_page_bottom(array &$page_bottom) {
-  $campaigns = _lightbox_campaigns_load();
-  if (!empty($campaigns)) {
-
-    /* @var \Drupal\lightbox_campaigns\Entity\LightboxCampaign $campaign */
-    foreach ($campaigns as $id => $campaign) {
-      $render_array = \Drupal::service('entity_type.manager')
-        ->getViewBuilder('lightbox_campaign')
-        ->view($campaign);
-      $page_bottom['lightbox_campaigns__' . $id] = $render_array;
-    }
-  }
-}
-
-/**
- * Load enabled campaigns with passing visibility tests.
+ * The Rules modules does not provide a real API for accessing this information
+ * so reverse-engineered query work is happening here. Not ideal but worth
+ * getting the relevant information in front of users.
  *
  * @return array
- *   An array of fully loaded LightboxCampaign objects that should be loaded.
+ *   An array keyed by Lightbox Campaign entity IDs with arrays of Rules config
+ *   entities that reference that Lightbox Campaign. An empty array otherwise.
+ *
+ * @see rules_modules_enabled()
  */
-function _lightbox_campaigns_load() {
-  $load = &drupal_static(__FUNCTION__);
+function lightbox_campaigns_active_rules() {
+  $rules = &drupal_static(__FUNCTION__);
 
-  if (!isset($load)) {
-    $load = [];
-    $campaigns = \Drupal::service('entity_type.manager')
-      ->getStorage('lightbox_campaign')
-      ->loadByProperties(['enable' => TRUE]);
+  if (!isset($rules)) {
+    $rules = array();
 
-    /* @var \Drupal\lightbox_campaigns\Entity\LightboxCampaign $campaign */
-    foreach ($campaigns as $key => $campaign) {
-      if ($campaign->shouldDisplay()) {
-        $load[$campaign->id()] = $campaign;
+    if (module_exists('rules')) {
+      $query = db_select('rules_dependencies', 'rd');
+      $query->join('rules_config', 'rc', 'rd.id = rc.id');
+      $query->fields('rd', array('id'))
+        ->condition('rd.module', 'lightbox_campaigns')
+        ->condition('rc.active', 1)
+        ->condition('rc.dirty', 0);
+      $ids = $query->execute()->fetchCol();
+      $entities = entity_load('rules_config', $ids);
+
+      /* @var \RulesReactionRule $entity */
+      foreach ($entities as $entity) {
+        /* @var \RulesAction $action */
+        foreach ($entity->actions() as $action) {
+          if (isset($action->settings['lightbox_campaign'])) {
+            if (!isset($rules[$action->settings['lightbox_campaign']])) {
+              $rules[$action->settings['lightbox_campaign']] = array();
+            }
+            // Add path data to the entity.
+            $entity->path = RulesPluginUI::path($entity->name);
+            $rules[$action->settings['lightbox_campaign']][] = $entity;
+          }
+        }
       }
     }
   }
 
-  return $load;
+  return $rules;
 }

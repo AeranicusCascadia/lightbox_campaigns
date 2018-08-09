@@ -7,6 +7,7 @@ CONTENTS OF THIS FILE
  * Introduction
  * Requirements
  * Installation
+ * Recommended Modules
  * Configuration
  * Use
  * Maintainers
@@ -27,16 +28,28 @@ display full page content to users based roles, content types, and/or paths.
 REQUIREMENTS
 ------------
 
-This module requires the following libraries:
+This module requires the following modules:
 
- * Featherlight.js
-   https://noelboss.github.io/featherlight/
+ * [Entity API](https://drupal.org/project/entity)
+ * [Date API](https://drupal.org/project/date)
+ * [Libraries](https://drupal.org/project/libraries)
+
+This module requires the following external libraries:
+
+ * [Featherlight.js](https://noelboss.github.io/featherlight/)
+
+RECOMMENDED MODULES
+-------------------
+
+ * [Rules](https://www.drupal.org/project/rules):
+   When enabled, Lightbox Campaigns provides a "Display a campaign" action
+   that can triggered by Rules events.
 
 INSTALLATION
 ------------
 
  * Install as you would normally install a contributed Drupal module. Visit:
-   https://www.drupal.org/docs/8/extending-drupal-8/installing-drupal-8-modules
+   https://drupal.org/documentation/install/modules-themes/modules-7
    for further information.
    
  * Install the Featherlight.js library:
@@ -46,39 +59,29 @@ INSTALLATION
      
    - Unpack the library files.
    
-   - Place the files in your site's /libraries folder such that the location is
-     /libraries/featherlight.
+   - Place the files in your site's `sites/all/libraries` folder such that the
+     location is `sites/all/libraries/featherlight`.
+     
+   Installation can be verified from Reports » Status Report. There should be a 
+   message similar to: "Featherlight `VERSION` installed at `LOCATION`."
 
 CONFIGURATION
 -------------
 
  * Configure user permissions in Administration » People » Permissions:
+   
+   - Administer Lightbox Campaigns
+   
+     Users need this permission to access and manage campaigns.
 
-   - Add lightbox campaigns
-   
-     Enables a user to add new lightbox campaigns.
-   
-   - Administer lightbox campaigns
-   
-     Users need this permission to access the campaigns list and generally 
-     administer news/existing campaigns.
-     
-   - Delete lightbox campaigns
-   
-     Enables a user to delete *any* existing lightbox campaigns.
-
-   - Edit lightbox campaigns
-   
-     Enables a user to edit *any* existing lightbox campaigns.
-     
 USE
 ---
 
-Lightbox campaign entities can be added from Content » Lightbox campaigns.
+Lightbox Campaign entities can be added from Content » Lightbox Campaigns.
 
-Every campaign entities has the following fields by default:
+Every campaign entity has the following fields:
 
- * Campaign name (string)
+ * Title (string)
  
    The name used in administrative pages to identify a campaign.
  
@@ -109,32 +112,31 @@ Every campaign entities has the following fields by default:
    The following rules can be used to fine-grain the circumstances under which
    the campaigns's lightbox will be displayed to users. Any number of rules can
    be combined and *all* rules must pass for content to be displayed.
+   
+    - Pages
+  
+     If paths are listed and the "Only the listed pages" option is selected,
+     the campaign will only appear on the listed paths.
+    
+     If the "All pages except those listed" option is selected, the campaign
+     will display on any path *expect* the listed paths.
+    
+     If no paths are listed, the campaign will display on *any* path.
  
    - Content Types
    
-     If any content types are selected, the lightbox will only display on pages 
+     If any content types are selected, the campaign will only display on pages 
      of the content types selected.
      
-     If no content types are selected, the lightbox will display on pages of 
+     If no content types are selected, the campaign will display on pages of 
      *any* content type.
      
    - Roles
       
-     If any user roles are selected, the lightbox will only to users belonging
+     If any user roles are selected, the campaign will only to users belonging
      to the selected roles.
      
-     If no user roles are selected, the lightbox will display to *all* users.
-      
-   - Paths
-   
-     If paths are listed and the "Show only for the specified paths" option is
-     selected, the lightbox will only appear on the listed paths.
-     
-     If the "Hide for the specified paths" option is selected, the lightbox will 
-     display on any path *expect* the listed paths.
-     
-     If no paths are listed, the lightbox will display on *any* path.
-     
+     If no user roles are selected, the campaign will display to *all* users.
       
 MAINTAINERS
 -----------

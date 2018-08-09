@@ -3,9 +3,7 @@
  * Lightbox Campaigns module featherlight handling.
  */
 
-(function ($, Drupal, drupalSettings) {
-
-  'use strict';
+(function ($) {
 
   /**
    * Loads a campaign lightbox, if it exists.
@@ -17,14 +15,14 @@
    */
 
   Drupal.behaviors.lightboxCampaignsDisplay = {
-    attach: function (context) {
+    attach: function (context, settings) {
       $('[data-lightbox-campaigns-entity-id]', context).once('lightboxCampaignsDisplay').each(function () {
-        var $id = $(this).data('lightbox-campaigns-entity-id');
+        let $id = $(this).data('lightbox-campaigns-entity-id');
 
-        if (drupalSettings.lightbox_campaigns[$id]) {
-          var $resetTimer = drupalSettings.lightbox_campaigns[$id].reset_timer;
-          var $key = 'lightboxCampaignsCampignShown-' + $id;
-          var $last = localStorage.getItem($key);
+        if (settings.lightbox_campaigns[$id]) {
+          let $resetTimer = settings.lightbox_campaigns[$id].reset_timer;
+          let $key = 'lightboxCampaignsCampignShown-' + $id;
+          let $last = localStorage.getItem($key);
 
           if ($.now() - $last > $resetTimer * 1000) {
             $.featherlight($(this), {
@@ -37,5 +35,4 @@
       });
     }
   };
-
-})(jQuery, Drupal, drupalSettings);
+}(jQuery));

@@ -6,70 +6,142 @@
  */
 
 /**
- * Implements hook_requirements().
+ * Implements hook_schema()
  */
-function lightbox_campaigns_requirements($phase) {
-  if ($phase != 'runtime') {
-    return FALSE;
-  }
+function lightbox_campaigns_schema() {
+  $schema = array();
 
-  $return = [];
+  $schema['lightbox_campaigns'] = array(
+    'description' => 'Lightxbox Campaigns entities.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary key.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'title' => array(
+        'description' => 'Campaign title.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'enable' => array(
+        'description' => 'Indicates if the Campaign is enabled.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'size' => 'tiny',
+        'not null' => TRUE,
+      ),
+      'content' => array(
+        'description' => 'Campaign content.',
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => TRUE,
+      ),
+      'content_format' => array(
+        'description' => 'Campaign content text format.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'reset' => array(
+        'description' => 'Campaign reset timer (seconds).',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'date_start' => array(
+        'description' => 'Campaign start date and time (unix timestamp).',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'date_end' => array(
+        'description' => 'Campaign end date and time (unix timestamp).',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'visibility' => array(
+        'description' => 'Serialized visibility settings for the Campaign.',
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => FALSE,
+      ),
+      // Required fields for an exportable entity.
+      /* @see entity_exportable_schema_fields() */
+      'status' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0x01,
+        'size' => 'tiny',
+        'description' => 'The exportable status of the entity.',
+      ),
+      'module' => array(
+        'description' => 'The name of the providing module if the entity has been defined in code.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'enable' => array('enable'),
+    ),
+  );
 
-  // Check for the required lightbox library.
-  $library_path = 'libraries/featherlight';
-  if (file_exists(DRUPAL_ROOT . '/' . $library_path . '/package.json')) {
-    $return['lightbox_campaigns_library'] = [
-      'title' => t('Featherlight'),
-      'severity' => REQUIREMENT_OK,
-      'value' => t('Featherlight library version %version installed.',
-        [
-          '%version' => _lightbox_campaigns_get_version(),
-        ]),
-    ];
-  }
-  else {
-    $return['lightbox_campaigns_library'] = [
-      'title' => t('Featherlight'),
-      'severity' => REQUIREMENT_ERROR,
-      'value' => t('Featherlight library was not found. Download 
-        <a href=":link">the latest version of library</a> and place it in the 
-        libraries directory (/libraries/featherlight).',
-        [
-          ':link' => 'https://github.com/noelboss/featherlight/releases',
-        ]),
-    ];
-  }
 
-  return $return;
+  return $schema;
 }
 
 /**
- * Gets the version information for the featherlight library.
+ * Implements hook_requirements().
  *
- * @return string
- *   A string containing the version of the library or empty if the version
- *   cannot be found.
+ * @see hook_requirements()
  */
-function _lightbox_campaigns_get_version() {
-  $options = [
-    'file' => 'package.json',
-    'pattern' => '@"version":\s*\"?([0-9a-zA-Z\.-]+)\"?@',
-    'lines' => 5,
-    'cols' => 80,
-  ];
-  $version = '';
-  $library_path = 'libraries/featherlight';
-  $file = DRUPAL_ROOT . '/' . $library_path . '/' . $options['file'];
-
-  if (!empty($options['file']) && file_exists($file)) {
-    $file = fopen($file, 'r');
-    while ($options['lines'] && $line = fgets($file, $options['cols'])) {
-      if (preg_match($options['pattern'], $line, $version)) {
-        break;
-      }
-      $options['lines']--;
-    }
-    fclose($file);
+function lightbox_campaigns_requirements($phase) {
+  if ($phase != 'runtime') {
+    return array();
   }
-  return $version[1];
+  $return = array();
+  // Ensure translations don't break at install time.
+  $t = get_t();
+
+  $library = libraries_detect('featherlight');
+
+  // If the library is installed.
+  if (!empty($library) && !empty($library['installed'])) {
+    $return['featherlight_library'] = array(
+      'title' => $library['name'],
+      'severity' => REQUIREMENT_OK,
+      'value' => $t('%name %version installed at %path.',
+        array(
+          '%name' => $library['name'],
+          '%path' => $library['library path'],
+          '%version' => $library['version'],
+        )
+      ),
+    );
+  }
+  else {
+    if (isset($library['error message'])) {
+      $message = $library['error message'];
+    }
+    else {
+      $message = $t('%name was not found. Download <a href="@link">the 
+        latest version of library</a> and place it in the libraries directory 
+        (sites/all/libraries/featherlight).', array(
+          '%name' => $library['name'],
+          '@link' => $library['download url'],
+        )
+      );
+    }
+
+    $return['featherlight_library'] = array(
+      'title' => $library['name'],
+      'severity' => REQUIREMENT_ERROR,
+      'value' => $message,
+    );
+  }
+
+  return $return;
 }
