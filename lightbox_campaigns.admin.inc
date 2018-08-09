@@ -95,9 +95,10 @@ function lightbox_campaigns_campaign_form($form, &$form_state, $campaign, $op = 
   );
 
   $form['date_start'] = array(
-    '#type' => 'date_popup',
+    '#type' => 'date_select',
     '#title' => t('Start date'),
     '#description' => t('Date and time to start running the campaign.'),
+    '#default_value' => '',
     '#date_type' => DATE_DATETIME,
     '#date_timezone' => date_default_timezone(),
     '#date_format' => 'm/d/Y h:i a',
@@ -114,9 +115,10 @@ function lightbox_campaigns_campaign_form($form, &$form_state, $campaign, $op = 
   }
 
   $form['date_end'] = array(
-    '#type' => 'date_popup',
+    '#type' => 'date_select',
     '#title' => t('End date'),
     '#description' => t('Date and time to stop running the campaign.'),
+    '#default_value' => '',
     '#date_type' => DATE_DATETIME,
     '#date_timezone' => date_default_timezone(),
     '#date_format' => 'm/d/Y h:i a',
@@ -130,6 +132,12 @@ function lightbox_campaigns_campaign_form($form, &$form_state, $campaign, $op = 
       'custom',
       DATE_FORMAT_DATETIME
     );
+  }
+
+  // Use date_popup for date fields if the module is enabled.
+  if (module_exists('date_popup')) {
+    $form['date_start']['#type'] = 'date_popup';
+    $form['date_end']['#type'] = 'date_popup';
   }
 
   // Visibility settings.
