@@ -24,15 +24,6 @@ function lightbox_campaigns_campaign_form(array $form, array &$form_state, \Ligh
   $form = array();
 
   if (!empty($campaign->rules)) {
-    $items = array();
-
-    /* @var \RulesReactionRule $rule */
-    foreach ($campaign->rules as $rule) {
-      // The "path" property is a custom addition.
-      /* @see lightbox_campaigns_active_rules() */
-      $items[] = l($rule->label(), $rule->path);
-    }
-
     $form['rules'] = array(
       '#type' => 'fieldset',
       '#title' => t('Related Rules configurations'),
@@ -43,10 +34,7 @@ function lightbox_campaigns_campaign_form(array $form, array &$form_state, \Ligh
       '#collapsed' => FALSE,
     );
 
-    $form['rules']['items'] = array(
-      '#theme' => 'item_list',
-      '#items' => $items,
-    );
+    $form['rules']['items'] = $campaign->getRulesListRenderArray();
   }
 
   $form['title'] = array(

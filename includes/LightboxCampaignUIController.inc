@@ -45,4 +45,49 @@ class LightboxCampaignUIController extends EntityDefaultUIController {
     return $campaign;
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function operationForm($form, &$form_state, $entity, $op) {
+    $form = parent::operationForm($form, $form_state, $entity, $op);
+
+    // Check for Rules configuration dependencies and prevent entity delete if
+    // any exist.
+    /* @var \LightboxCampaignEntity $entity */
+    if ($op == 'delete' && !empty($entity->rules)) {
+      $form['rules'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Related Rules configurations'),
+        '#description' => t('This Campaign is configured to be displayed by
+          the Rules configurations listed below. The Campaign 
+          <strong>cannot be deleted</strong> until it has been removed from all
+          Rules configurations.'),
+        '#collapsible' => TRUE,
+        '#collapsed' => FALSE,
+        '#weight' => -1,
+      );
+      $form['rules']['items'] = $entity->getRulesListRenderArray();
+      unset($form['description']);
+      $form['actions']['submit']['#disabled'] = TRUE;
+    }
+
+    return $form;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function operationFormValidate($form, &$form_state) {
+    if ($form_state['op'] == 'delete') {
+      $entity = $form_state[$this->entityType];
+      if (!empty($entity->rules)) {
+        form_set_error('form', t(
+          'This Campaign cannot be deleted because it is associated with Rules 
+          configurations.'
+        ));
+      }
+    }
+    parent::operationFormValidate($form, $form_state);
+  }
+
 }

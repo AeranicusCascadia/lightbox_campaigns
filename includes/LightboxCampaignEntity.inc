@@ -230,6 +230,34 @@ class LightboxCampaignEntity extends Entity {
   }
 
   /**
+   * Retrieve a render array list of Rules that use the Campaign.
+   *
+   * @return array
+   *   A list render array with linked Rules configurations by name as items.
+   */
+  public function getRulesListRenderArray() {
+    $render = array();
+
+    if (!empty($this->rules)) {
+      $items = array();
+
+      /* @var \RulesReactionRule $rule */
+      foreach ($this->rules as $rule) {
+        // The "path" property is a custom addition.
+        /* @see lightbox_campaigns_active_rules() */
+        $items[] = l($rule->label(), $rule->path);
+      }
+
+      $render = array(
+        '#theme' => 'item_list',
+        '#items' => $items,
+      );
+    }
+
+    return $render;
+  }
+
+  /**
    * Retrieve visibility settings or default as an array.
    *
    * @return array
