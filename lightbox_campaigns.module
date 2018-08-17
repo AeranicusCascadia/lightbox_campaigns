@@ -5,6 +5,8 @@
  * Lightbox Campaigns module file.
  */
 
+use Drupal\Core\TempStore\TempStoreException;
+
 /**
  * Implements hook_theme().
  */
@@ -84,11 +86,32 @@ function lightbox_campaigns_page_bottom(array &$page_bottom) {
  *
  * @return array
  *   An array of fully loaded LightboxCampaign objects that should be loaded.
+ *
+ * @see \Drupal\lightbox_campaigns\Plugin\RulesAction\DisplayCampaign::doExecute()
  */
 function _lightbox_campaigns_load() {
   $load = &drupal_static(__FUNCTION__);
 
   if (!isset($load)) {
+
+    /* @var \Drupal\Core\TempStore\PrivateTempStore $temp_store */
+    $temp_store = \Drupal::service('tempstore.private')
+      ->get('lightbox_campaigns');
+
+    // Check for assigned Campaigns from Rules configurations.
+    $rule_id = 'lightbox_campaigns_rules_action_display_campaign';
+    if ($rules_campaigns = $temp_store->get($rule_id)) {
+      try {
+        $temp_store->delete($rule_id);
+      }
+      catch (TempStoreException $e) {
+        watchdog_exception('loyalist', $e);
+      }
+    }
+    else {
+      $rules_campaigns = [];
+    }
+
     $load = [];
     $campaigns = \Drupal::service('entity_type.manager')
       ->getStorage('lightbox_campaign')
@@ -96,7 +119,7 @@ function _lightbox_campaigns_load() {
 
     /* @var \Drupal\lightbox_campaigns\Entity\LightboxCampaign $campaign */
     foreach ($campaigns as $key => $campaign) {
-      if ($campaign->shouldDisplay()) {
+      if ($campaign->shouldDisplay(isset($rules_campaigns[$campaign->id()]))) {
         $load[$campaign->id()] = $campaign;
       }
     }

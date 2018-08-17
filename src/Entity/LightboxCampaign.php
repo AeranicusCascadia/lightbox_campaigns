@@ -51,6 +51,39 @@ class LightboxCampaign extends ContentEntityBase implements LightboxCampaignInte
   use EntityChangedTrait;
 
   /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
+   * The module handler service.
+   *
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface
+   */
+  protected $moduleHandler;
+
+  /**
+   * All Rules configurations that depend on this Campaign.
+   *
+   * @var array
+   */
+  public $rules;
+
+  /**
+   * {@inheritdoc}
+   */
+  public function __construct(array $values, $entity_type, $bundle = FALSE, $translations = []) {
+    parent::__construct($values, $entity_type, $bundle, $translations);
+    // Dependency injection is currently not possible with entities.
+    /* @url https://www.drupal.org/node/2913224 */
+    $this->moduleHandler = \Drupal::service('module_handler');
+    $this->entityTypeManager = \Drupal::service('entity_type.manager');
+    $this->rules = $this->getDependantRules();
+  }
+
+  /**
    * {@inheritdoc}
    *
    * When a new entity instance is added, set the user_id entity reference to
@@ -285,6 +318,39 @@ class LightboxCampaign extends ContentEntityBase implements LightboxCampaignInte
   }
 
   /**
+   * Retrieve all active Rules config entities that depend on the Campaign.
+   *
+   * @return array
+   *   An array of active Rules config entities by ID.
+   */
+  public function getDependantRules() {
+    $rules = [];
+
+    if ($this->moduleHandler->moduleExists('rules')) {
+      try {
+        $rules_manager = $this->entityTypeManager
+          ->getStorage('rules_reaction_rule');
+        $entities = $rules_manager->loadByProperties(['status' => 1]);
+        /* @var \Drupal\rules\Entity\ReactionRuleConfig $entity */
+        foreach ($entities as $entity) {
+          $config = $entity->getExpression()->getConfiguration();
+          foreach ($config['actions']['actions'] as $info) {
+            if ($info['action_id'] == 'lightbox_campaigns_rules_action_display_campaign'
+              && $info['context_values']['campaign_id'] == $this->id()) {
+              $rules[$entity->id()] = $entity;
+            }
+          }
+        }
+      }
+      catch (\Exception $e) {
+        watchdog_exception('lightbox_campaigns', $e);
+      }
+    }
+
+    return $rules;
+  }
+
+  /**
    * Create a clean array of visibility options data.
    *
    * @return array
@@ -320,14 +386,19 @@ class LightboxCampaign extends ContentEntityBase implements LightboxCampaignInte
   /**
    * Determine if the campaign should be displayed.
    *
-   * If the entity is enabled and within specified date constraints, this method
-   * will check any other visibility settings (user roles, node types, and
-   * paths) based on the current context.
+   * The Campaign will be displayed if it is:
+   *  - enabled,
+   *  - within configured date constraints,
+   *  - passing all visibility settings, and
+   *  - not attached to any Rules configurations (when $ignore_rules is FALSE).
+   *
+   * @param bool $ignore_rules
+   *   If TRUE, do not check for Rules configurations dependencies.
    *
    * @return bool
    *   TRUE if the campaign should be displayed, FALSE otherwise.
    */
-  public function shouldDisplay() {
+  public function shouldDisplay($ignore_rules = FALSE) {
     // Never load on admin routes.
     if (\Drupal::service('router.admin_context')->isAdminRoute()) {
       return FALSE;
@@ -348,7 +419,10 @@ class LightboxCampaign extends ContentEntityBase implements LightboxCampaignInte
     }
     $within_date_constraints = $now >= $start && $now <= $end;
 
-    $display = $enabled && $within_date_constraints;
+    // Check Rules constraints.
+    $rules_constraint = empty($this->rules) || $ignore_rules;
+
+    $display = $enabled && $within_date_constraints && $rules_constraint;
     if ($display) {
       $visibility = $this->getVisibilitySettings();
 
