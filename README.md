@@ -32,11 +32,15 @@ This module requires the following modules:
 
  * [Entity API](https://drupal.org/project/entity)
  * [Date API](https://drupal.org/project/date)
+ * [jQuery Update](https://drupal.org/project/jquery_update)
  * [Libraries](https://drupal.org/project/libraries)
 
 This module requires the following external libraries:
 
  * [Featherlight.js](https://noelboss.github.io/featherlight/)
+ 
+   *Note: Featherlight.js requires jQuery version 1.7 or higher. This is why
+   jQuery Update is a dependency for Lightbox Campaigns.*
 
 RECOMMENDED MODULES
 -------------------
@@ -51,6 +55,9 @@ INSTALLATION
  * Install as you would normally install a contributed Drupal module. Visit:
    https://drupal.org/documentation/install/modules-themes/modules-7
    for further information.
+   
+ * Ensure the site jQuery version is at least 1.7 (Administration » 
+   Configuration » Development).
    
  * Install the Featherlight.js library:
  
