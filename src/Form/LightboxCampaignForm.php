@@ -2,9 +2,14 @@
 
 namespace Drupal\lightbox_campaigns\Form;
 
+use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\Entity\ContentEntityForm;
+use Drupal\Core\Entity\EntityRepositoryInterface;
+use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Language\Language;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Messenger\MessengerInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Class LightboxCampaignFormBase.
@@ -12,6 +17,42 @@ use Drupal\Core\Form\FormStateInterface;
  * @ingroup lightbox_campaigns
  */
 class LightboxCampaignForm extends ContentEntityForm {
+
+  /**
+   * The messenger service.
+   *
+   * @var \Drupal\Core\Messenger\MessengerInterface
+   */
+  protected $messenger;
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('messenger'),
+      $container->get('entity.repository'),
+      $container->get('entity_type.bundle.info'),
+      $container->get('datetime.time')
+    );
+  }
+
+  /**
+   * Constructs a new LightboxCampaignForm object.
+   *
+   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
+   *   The messenger interface.
+   * @param \Drupal\Core\Entity\EntityRepositoryInterface $entity_repository
+   *   The entity repository service.
+   * @param \Drupal\Core\Entity\EntityTypeBundleInfoInterface $entity_type_bundle_info
+   *   The entity type bundle service.
+   * @param \Drupal\Component\Datetime\TimeInterface $time
+   *   The time service.
+   */
+  public function __construct(MessengerInterface $messenger, EntityRepositoryInterface $entity_repository, EntityTypeBundleInfoInterface $entity_type_bundle_info = NULL, TimeInterface $time = NULL) {
+    parent::__construct($entity_repository, $entity_type_bundle_info, $time);
+    $this->messenger = $messenger;
+  }
 
   /**
    * {@inheritdoc}
@@ -91,20 +132,16 @@ class LightboxCampaignForm extends ContentEntityForm {
     $status = $entity->save();
 
     if ($status == SAVED_UPDATED) {
-      \Drupal::service('messenger')->addMessage(
-        $this->t(
-          '%label has been updated.',
-          ['%label' => $this->entity->label()]
-        )
-      );
+      $this->messenger->addMessage($this->t(
+        '%label has been updated.',
+        ['%label' => $this->entity->label()]
+      ));
     }
     else {
-      \Drupal::service('messenger')->addMessage(
-        $this->t(
-          '%label has been added.',
-          ['%label' => $this->entity->label()]
-        )
-      );
+      $this->messenger->addMessage($this->t(
+        '%label has been added.',
+        ['%label' => $this->entity->label()]
+      ));
     }
 
     $form_state->setRedirect('entity.lightbox_campaign.collection');
