@@ -63,6 +63,7 @@ function lightbox_campaigns_page_attachments(array &$page) {
             'lightbox_campaign.lightbox',
             ['lightbox_campaign' => $id]
         ),
+        'prevent_trigger' => $campaign->get('prevent_trigger')->value,
         'reset_timer' => $campaign->get('reset')->value,
       ];
     }

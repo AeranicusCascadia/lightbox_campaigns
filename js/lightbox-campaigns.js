@@ -28,7 +28,8 @@
         var $localStorageKey = 'lightboxCampaignsCampignShown-' + $campaign.id;
         var $last = localStorage.getItem($localStorageKey);
 
-        if ($.now() - $last > $campaign.reset_timer * 1000) {
+        if ($campaign.prevent_trigger !== '1'
+          && $.now() - $last > $campaign.reset_timer * 1000) {
           $.featherlight($campaign.callback, {
             type: 'ajax',
             afterOpen: function () {

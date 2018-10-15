@@ -246,6 +246,23 @@ class LightboxCampaign extends ContentEntityBase implements LightboxCampaignInte
       ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
 
+    // Prevent trigger.
+    $fields['prevent_trigger'] = BaseFieldDefinition::create('boolean')
+      ->setLabel(t('Do not trigger.'))
+      ->setDescription(t('When "do not trigger" is selected, the Lightbox
+        Campaign module will never trigger this lightbox. This can useful when
+        the conditions for triggering the lightbox need to be further customized
+        (e.g. from another module or theme). <strong>All Visibility settings
+        still apply</strong>.'))
+      ->setRevisionable(TRUE)
+      ->setDefaultValue(FALSE)
+      ->setDisplayOptions('form', [
+        'type' => 'boolean_checkbox',
+        'settings' => ['display_label' => TRUE],
+      ])
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayConfigurable('view', TRUE);
+
     // Visibility: Node Types.
     $node_types = \Drupal::service('entity.manager')
       ->getStorage('node_type')
