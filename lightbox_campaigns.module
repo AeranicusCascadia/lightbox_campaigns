@@ -57,26 +57,14 @@ function lightbox_campaigns_page_attachments(array &$page) {
 
     /* @var \Drupal\lightbox_campaigns\Entity\LightboxCampaign $campaign */
     foreach ($campaigns as $id => $campaign) {
-      $settings[$id] = ['reset_timer' => $campaign->get('reset')->value];
-    }
-  }
-}
-
-/**
- * Implements hook_page_bottom().
- *
- * Adds active campaigns to the page.
- */
-function lightbox_campaigns_page_bottom(array &$page_bottom) {
-  $campaigns = _lightbox_campaigns_load();
-  if (!empty($campaigns)) {
-
-    /* @var \Drupal\lightbox_campaigns\Entity\LightboxCampaign $campaign */
-    foreach ($campaigns as $id => $campaign) {
-      $render_array = \Drupal::service('entity_type.manager')
-        ->getViewBuilder('lightbox_campaign')
-        ->view($campaign);
-      $page_bottom['lightbox_campaigns__' . $id] = $render_array;
+      $settings[] = [
+        'id' => $id,
+        'callback' => \Drupal::service('url_generator')->generateFromRoute(
+            'lightbox_campaign.lightbox',
+            ['lightbox_campaign' => $id]
+        ),
+        'reset_timer' => $campaign->get('reset')->value,
+      ];
     }
   }
 }
@@ -118,7 +106,7 @@ function _lightbox_campaigns_load() {
       ->loadByProperties(['enable' => TRUE]);
 
     /* @var \Drupal\lightbox_campaigns\Entity\LightboxCampaign $campaign */
-    foreach ($campaigns as $key => $campaign) {
+    foreach ($campaigns as $campaign) {
       if ($campaign->shouldDisplay(isset($rules_campaigns[$campaign->id()]))) {
         $load[$campaign->id()] = $campaign;
       }

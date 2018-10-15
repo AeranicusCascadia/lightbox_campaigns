@@ -37,3 +37,14 @@ entity.lightbox_campaign.delete_form:
     _entity_form: lightbox_campaign.delete
   requirements:
     _entity_access: lightbox_campaign.delete
+
+lightbox_campaign.lightbox:
+  path: '/lightbox_campaigns/lightbox/{lightbox_campaign}'
+  defaults:
+    _controller: '\Drupal\lightbox_campaigns\Controller\LightboxCampaignsController::lightboxContentCallback'
+  requirements:
+    _permission: 'access content'
+  options:
+    parameters:
+      lightbox_campaign:
+        type: 'entity:lightbox_campaign'

@@ -7,34 +7,50 @@
 
   'use strict';
 
+  var initialized;
+
   /**
-   * Loads a campaign lightbox, if it exists.
+   * Set the `initialized` var once initialization is complete.
+   */
+  function init() {
+    if (!initialized) {
+      initialized = true;
+      loadCampaigns();
+    }
+  }
+
+  /**
+   * Looks for and loads lightbox campaigns that should be loaded.
+   */
+  function loadCampaigns() {
+    if (typeof drupalSettings.lightbox_campaigns !== 'undefined') {
+      drupalSettings.lightbox_campaigns.forEach(function ($campaign) {
+        var $localStorageKey = 'lightboxCampaignsCampignShown-' + $campaign.id;
+        var $last = localStorage.getItem($localStorageKey);
+
+        if ($.now() - $last > $campaign.reset_timer * 1000) {
+          $.featherlight($campaign.callback, {
+            type: 'ajax',
+            afterOpen: function () {
+              localStorage.setItem($localStorageKey, $.now());
+            }
+          });
+        }
+      });
+    }
+  }
+
+  /**
+   * Only execute the loadCampaigns function once per page load.
    *
    * @type {Drupal~behavior}
    *
    * @prop {Drupal~behaviorAttach} attach
-   *   Attaches featherlight campaign load on page load.
+   *   Checks for final page load initialization.
    */
-
   Drupal.behaviors.lightboxCampaignsDisplay = {
     attach: function (context) {
-      $('[data-lightbox-campaigns-entity-id]', context).once('lightboxCampaignsDisplay').each(function () {
-        var $id = $(this).data('lightbox-campaigns-entity-id');
-
-        if (drupalSettings.lightbox_campaigns[$id]) {
-          var $resetTimer = drupalSettings.lightbox_campaigns[$id].reset_timer;
-          var $key = 'lightboxCampaignsCampignShown-' + $id;
-          var $last = localStorage.getItem($key);
-
-          if ($.now() - $last > $resetTimer * 1000) {
-            $.featherlight($(this), {
-              'afterOpen': function () {
-                localStorage.setItem($key, $.now())
-              }
-            });
-          }
-        }
-      });
+      init();
     }
   };
 
